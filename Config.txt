@@ -7,6 +7,7 @@ import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.Scanner;
 
 public class Config {
@@ -23,6 +24,9 @@ public class Config {
 	
 		sr.WriteServerProperty(id);
 		cl.WriteClientProperty(id, ip);
+		int i=0;
+		
+		
 		Path file=Files.copy(Paths.get("Client.exe"),Paths.get("Clients\\Client.exe"));
 	}
 	public static String Id() throws Exception{
@@ -51,5 +55,5 @@ public class Config {
        }
        return id;
 	}
-
+	
 }

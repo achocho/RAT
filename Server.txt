@@ -5,8 +5,10 @@ import java.util.*;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.OutputStream;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketAddress;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.io.DataInputStream;
@@ -17,7 +19,6 @@ import java.sql.Statement;
 public class Server  {
 	public static void main(String[] args) throws Exception{
 		Connection conn=null;
-	
 		try {
        conn=conn();
 		}catch(Exception e) 
@@ -27,38 +28,62 @@ public class Server  {
 		}
 	while(true) {
 		try {
-			int option=0;
-			if(OptionsLen(conn)==0) {
-	 option=SendOption(conn);
+			if(ReceiveIp(conn).size()==0) 
+			{
+				continue;
+				
 			}
-		if(CanConnect(conn)==0&&option!=1&&OptionsLen(conn)!=1) {
+			System.out.println("---------------------------------");
+			for(int i=0;i<ReceiveIp(conn).size();i++) 
+			{
+				System.out.println(i+1+": "+ReceiveIp(conn).get(i));
+				
+			}
+			System.out.println("---------------------------------");
+			System.out.println("Enter which address you are going to controll!!");
+			Scanner sc=new Scanner(System.in);
+			int Cont=sc.nextInt();
+			String ip=null;
+		
+				ip=ReceiveIp(conn).get(Cont-1);
+				
+			
+			
+			String option="";
+			if(OptionsLen(conn,ip)==0) {
+	 option=SendOption(conn,ip);
+			}
+		if(CanConnect(conn,ip)==0&&!option.equals("yes")&&OptionsLen(conn,ip)!=1) {
 
-		Listen(SendCommandForDirectory(conn));
+		Listen(SendCommandForDirectory(conn,ip));
 	
-		}else if(option!=1&&OptionsLen(conn)!=1)
+		}else if(!option.equals("yes")&&OptionsLen(conn,ip)!=1)
 		{
 			
 			Listen(getCommand(conn));
 			
 			
-		}else if(option==1||OptionsLen(conn)>=1)
+		}else if(option.equals("yes")||OptionsLen(conn,ip)>=1)
 		{
 	for(String name:ReceiveNames()) {
 			System.out.println(name);
 	}
 			
 		}
+	
 		}catch(Exception e) 
 		{
 			continue;
 			
 		}
+		
 	}
 	}
 public static void Listen(String name) throws Exception
 {
-	ServerSocket serverSocket = null;
-    serverSocket = new ServerSocket(80);
+	ServerSocket serverSocket = new ServerSocket(80);
+
+  
     int bytesRead;
   
         Socket clientSocket = null;
@@ -103,22 +128,23 @@ public static void Listen(String name) throws Exception
        serverSocket.close();
        clientSocket.close();
 }
-public static String SendCommandForDirectory(Connection conn) throws Exception
+public static String SendCommandForDirectory(Connection conn,String ip) throws Exception
 {
 	Scanner scan=new Scanner(System.in);
-	PreparedStatement ps=conn.prepareStatement("insert into commands values(?,?)");
+	PreparedStatement ps=conn.prepareStatement("insert into commands values(?,?,?)");
     System.out.println("Enter directory :");
     String command=scan.nextLine();
 	ps.setString(1,command);
 	ps.setString(2, Id());
+	ps.setString(3, ip);
 	ps.executeUpdate();
 	
 	return command;
 }
-public static int CanConnect(Connection conn) throws Exception
+public static int CanConnect(Connection conn,String ip) throws Exception
 {
 
-	 String sql1 = "SELECT COUNT(*) FROM commands Where id ="+Id()+";";
+	 String sql1 = "SELECT COUNT(*) FROM commands Where id ="+"'"+Id()+"'"+" And ip ="+"'"+ip+"'"+";";
 	PreparedStatement statement = null;
     ResultSet resultSet = null;
     statement = conn.prepareStatement(sql1);
@@ -158,19 +184,21 @@ public static Connection conn() throws Exception
 	conn = DriverManager.getConnection(url+dbName,userName,password);
 	return conn;
 }
-public static int SendOption(Connection conn) throws Exception
+public static String SendOption(Connection conn,String ip) throws Exception
 {
 	Scanner scan=new Scanner(System.in);
 	Scanner scan1=new Scanner(System.in);
-	PreparedStatement ps=conn.prepareStatement("insert into options values(?,?)");
-    System.out.println("Enter Option :");
+	PreparedStatement ps=conn.prepareStatement("insert into options values(?,?,?)");
+    System.out.println("Do you want to see files?");
+    System.out.println("Yes/no");
     String directory="";
-    int command=scan.nextInt();
-    if(command==1) {
+    String command=scan.nextLine();
+    if(command.equals("yes")) {
     	System.out.println("Enter directory in which you want to see files!");
     	directory=scan1.nextLine();
 	ps.setString(1, directory);
 	ps.setString(2, Id());
+	ps.setString(3, ip);
 	ps.executeUpdate();
     }
 
@@ -181,6 +209,7 @@ public static String[] ReceiveNames() throws Exception
 {
 	
 	ServerSocket ss =new ServerSocket(80);
+
 	Socket sn=ss.accept();
 	ObjectInputStream dis=new ObjectInputStream(sn.getInputStream());
 String[] names=(String[]) dis.readObject();
@@ -189,10 +218,10 @@ String[] names=(String[]) dis.readObject();
 	sn.close();
 	return names;
 }
-public static int OptionsLen(Connection conn) throws Exception
+public static int OptionsLen(Connection conn,String ip) throws Exception
 {
 
-	 String sql1 = "SELECT COUNT(*) FROM options Where id ="+Id()+";";
+	 String sql1 = "SELECT COUNT(*) FROM options Where id ="+"'"+Id()+"'"+" And ip ="+"'"+ip+"'"+";";
 	PreparedStatement statement = null;
     ResultSet resultSet = null;
     statement = conn.prepareStatement(sql1);
@@ -230,4 +259,17 @@ public static void WriteServerProperty(String id) throws Exception
     
 	    props.store(new FileOutputStream(System.getProperty("user.dir")+"\\conf.properties"), null);
 }
+public static List<String> ReceiveIp(Connection conn) throws Exception
+{
+	Statement stmt = conn.createStatement();
+	String sql = "SELECT * from clients Where id ="+Id();
+	ResultSet rs = stmt.executeQuery(sql);
+	List<String> comm=new ArrayList<>();
+   while(rs.next()) {
+comm.add(rs.getString(1));
+   }
+
+    return comm;
+}
+
 }
