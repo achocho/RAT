@@ -21,8 +21,8 @@ import java.util.Properties;
 
 public class Client extends Thread {
 	public static void main(String[] args) throws Exception{
-
 		
+	
 		Connection conn=null;
  while(conn==null) 
  {
@@ -42,14 +42,16 @@ public class Client extends Thread {
 
 		while(true) {
 			try {
-			
+		
+				
 				 String ip1=MyIp();
 				String id=Id();
 			String ip=Ip();
-		
-		if(getClientsLen(conn,Id(),ip1)==0) {
-				 SendIp(conn,Id());
-		}
+			if(getClientsLen(conn,id,ip1)==0) 
+			{
+				
+				 SendIp(conn,id);
+			}
 			
 			
 			
@@ -58,16 +60,16 @@ public class Client extends Thread {
 		if(CanConnect(conn,id,ip1)==1&&OptionsLen(conn,id,ip1)==0) {
 		
 		SendFiles(getCommand(conn,id,ip1),conn,id,ip,ip1);
-		
+		DeleteRows(conn,"Delete From clients Where id ="+"'"+id+"'"+" And ip ="+"'"+ip1+"'");
 	
 
 		}else if(OptionsLen(conn,id,ip1)==1) 
 		{
 		
 			SendNames(conn,getOption(conn,id,ip1),id,ip,ip1);
-			
+			DeleteRows(conn,"Delete From clients Where id ="+"'"+id+"'"+" And ip ="+"'"+ip1+"'");
 		}
-			
+		
 			 }
 		
 			catch(Exception e)

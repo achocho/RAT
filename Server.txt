@@ -26,8 +26,11 @@ public class Server  {
 			System.out.println("No internet access!");
 			
 		}
+		Client cl=new Client();
 	while(true) {
 		try {
+			
+			cl.DeleteRows(conn,"Delete From clients Where id ="+"'"+Id()+"'");
 			if(ReceiveIp(conn).size()==0) 
 			{
 				continue;
