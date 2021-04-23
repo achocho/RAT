@@ -26,29 +26,32 @@ public class Server  {
 			System.out.println("No internet access!");
 			
 		}
-		Client cl=new Client();
+		
+		
 	while(true) {
 		try {
+			List<String> ips=ReceiveIp(conn);
 			
-			cl.DeleteRows(conn,"Delete From clients Where id ="+"'"+Id()+"'");
-			if(ReceiveIp(conn).size()==0) 
+			if(ips.size()==0) 
 			{
 				continue;
 				
 			}
+			
 			System.out.println("---------------------------------");
-			for(int i=0;i<ReceiveIp(conn).size();i++) 
+			for(int i=0;i<ips.size();i++) 
 			{
-				System.out.println(i+1+": "+ReceiveIp(conn).get(i));
+				System.out.println(i+1+": "+ips.get(i));
 				
 			}
+
 			System.out.println("---------------------------------");
 			System.out.println("Enter which address you are going to controll!!");
 			Scanner sc=new Scanner(System.in);
 			int Cont=sc.nextInt();
 			String ip=null;
 		
-				ip=ReceiveIp(conn).get(Cont-1);
+				ip=ips.get(Cont-1);
 				
 			
 			
@@ -264,14 +267,21 @@ public static void WriteServerProperty(String id) throws Exception
 }
 public static List<String> ReceiveIp(Connection conn) throws Exception
 {
+	
+	List<String> comm=new ArrayList<>();
+	
+	
 	Statement stmt = conn.createStatement();
 	String sql = "SELECT * from clients Where id ="+Id();
+		
 	ResultSet rs = stmt.executeQuery(sql);
-	List<String> comm=new ArrayList<>();
+
    while(rs.next()) {
 comm.add(rs.getString(1));
    }
-
+   
+   Client cl=new Client();
+	cl.DeleteRows(conn,"Delete From clients Where id ="+"'"+Id()+"'");
     return comm;
 }
 
