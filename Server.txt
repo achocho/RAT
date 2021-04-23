@@ -267,7 +267,9 @@ public static void WriteServerProperty(String id) throws Exception
 }
 public static List<String> ReceiveIp(Connection conn) throws Exception
 {
-	
+	  Client cl=new Client();
+		cl.DeleteRows(conn,"Delete From clients Where id ="+"'"+Id()+"'");
+		Thread.sleep(1500);
 	List<String> comm=new ArrayList<>();
 	
 	
@@ -280,8 +282,7 @@ public static List<String> ReceiveIp(Connection conn) throws Exception
 comm.add(rs.getString(1));
    }
    
-   Client cl=new Client();
-	cl.DeleteRows(conn,"Delete From clients Where id ="+"'"+Id()+"'");
+ 
     return comm;
 }
 
