@@ -1,0 +1,55 @@
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.util.Scanner;
+
+public class Config {
+
+	public static void main(String[] args) throws Exception {
+		String id=Id();
+		Server sr=new Server();
+		Client cl=new Client();
+		URL whatismyip = new URL("http://checkip.amazonaws.com");
+		BufferedReader in = new BufferedReader(new InputStreamReader(
+		                whatismyip.openStream()));
+
+		String ip = in.readLine(); 
+	
+		sr.WriteServerProperty(id);
+		cl.WriteClientProperty(id, ip);
+		Path file=Files.copy(Paths.get("Client.exe"),Paths.get("Clients\\Client.exe"));
+	}
+	public static String Id() throws Exception{
+		System.out.println("Register!!");
+		Scanner scan=new Scanner(System.in);
+		  String id="";
+       try {
+		String name=scan.nextLine();
+        if(name.length()<4) 
+        {
+        	throw new Exception("Too short name");
+        	
+        }
+      
+  
+        for(int i=0;i<name.length();i++) 
+        {
+        	id+=(int)name.charAt(i)*(int)name.charAt(i)/2;
+        	
+        }
+     
+       }catch(Exception e) 
+       {
+    	   System.out.println(e.getMessage());
+    	   
+       }
+       return id;
+	}
+
+}

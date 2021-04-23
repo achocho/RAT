@@ -1,0 +1,233 @@
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.util.*;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.OutputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.io.DataInputStream;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.Statement;
+
+public class Server  {
+	public static void main(String[] args) throws Exception{
+		Connection conn=null;
+	
+		try {
+       conn=conn();
+		}catch(Exception e) 
+		{
+			System.out.println("No internet access!");
+			
+		}
+	while(true) {
+		try {
+			int option=0;
+			if(OptionsLen(conn)==0) {
+	 option=SendOption(conn);
+			}
+		if(CanConnect(conn)==0&&option!=1&&OptionsLen(conn)!=1) {
+
+		Listen(SendCommandForDirectory(conn));
+	
+		}else if(option!=1&&OptionsLen(conn)!=1)
+		{
+			
+			Listen(getCommand(conn));
+			
+			
+		}else if(option==1||OptionsLen(conn)>=1)
+		{
+	for(String name:ReceiveNames()) {
+			System.out.println(name);
+	}
+			
+		}
+		}catch(Exception e) 
+		{
+			continue;
+			
+		}
+	}
+	}
+public static void Listen(String name) throws Exception
+{
+	ServerSocket serverSocket = null;
+    serverSocket = new ServerSocket(80);
+    int bytesRead;
+  
+        Socket clientSocket = null;
+        clientSocket = serverSocket.accept();
+         
+        InputStream in = clientSocket.getInputStream();
+        String FileName="";
+    int len=0;
+    if(name.charAt(name.length()-1)=='\\') 
+    {
+    	len=name.length()-1;
+    	
+    }else 
+    {
+    	len=name.length();
+    	
+    }
+        for(int i=0;i<len;i++) 
+        {
+        	if(name.charAt(i)!='\\') 
+        	{
+        		FileName+=name.charAt(i);
+        		
+        	}else
+        	{
+        	
+        		
+        		FileName="";
+        		
+        		
+        		}
+        	}
+      
+        OutputStream output = new FileOutputStream(System.getProperty("user.dir")+"\\"+FileName);
+           
+        byte[] buffer = new byte[1024];
+        while ((bytesRead = in.read(buffer)) != -1) {
+            output.write(buffer, 0, bytesRead);
+        }
+        
+        output.close();	
+       serverSocket.close();
+       clientSocket.close();
+}
+public static String SendCommandForDirectory(Connection conn) throws Exception
+{
+	Scanner scan=new Scanner(System.in);
+	PreparedStatement ps=conn.prepareStatement("insert into commands values(?,?)");
+    System.out.println("Enter directory :");
+    String command=scan.nextLine();
+	ps.setString(1,command);
+	ps.setString(2, Id());
+	ps.executeUpdate();
+	
+	return command;
+}
+public static int CanConnect(Connection conn) throws Exception
+{
+
+	 String sql1 = "SELECT COUNT(*) FROM commands Where id ="+Id()+";";
+	PreparedStatement statement = null;
+    ResultSet resultSet = null;
+    statement = conn.prepareStatement(sql1);
+    resultSet = statement.executeQuery();
+    int out=0;
+    if(resultSet.next()) {
+      out=resultSet.getInt(1);
+ 
+  
+    }
+return out;	
+}
+public static String getCommand(Connection conn) throws Exception
+{
+	Statement stmt = conn.createStatement();
+	String sql = "SELECT * from commands Where id ="+Id();
+	ResultSet rs = stmt.executeQuery(sql);
+	String comm="";
+   while(rs.next()) {
+comm= rs.getString(1);
+   }
+
+    return comm;
+
+
+
+}
+public static Connection conn() throws Exception
+{
+	Connection conn = null;
+	String url = "jdbc:mysql://18.188.255.221:3306/";
+	String dbName = "java";
+	String driver = "com.mysql.cj.jdbc.Driver";
+	String userName = "acho";
+	String password = "1234";
+	Class.forName(driver).newInstance();
+	conn = DriverManager.getConnection(url+dbName,userName,password);
+	return conn;
+}
+public static int SendOption(Connection conn) throws Exception
+{
+	Scanner scan=new Scanner(System.in);
+	Scanner scan1=new Scanner(System.in);
+	PreparedStatement ps=conn.prepareStatement("insert into options values(?,?)");
+    System.out.println("Enter Option :");
+    String directory="";
+    int command=scan.nextInt();
+    if(command==1) {
+    	System.out.println("Enter directory in which you want to see files!");
+    	directory=scan1.nextLine();
+	ps.setString(1, directory);
+	ps.setString(2, Id());
+	ps.executeUpdate();
+    }
+
+	
+	return command;
+}
+public static String[] ReceiveNames() throws Exception
+{
+	
+	ServerSocket ss =new ServerSocket(80);
+	Socket sn=ss.accept();
+	ObjectInputStream dis=new ObjectInputStream(sn.getInputStream());
+String[] names=(String[]) dis.readObject();
+	
+	ss.close();
+	sn.close();
+	return names;
+}
+public static int OptionsLen(Connection conn) throws Exception
+{
+
+	 String sql1 = "SELECT COUNT(*) FROM options Where id ="+Id()+";";
+	PreparedStatement statement = null;
+    ResultSet resultSet = null;
+    statement = conn.prepareStatement(sql1);
+    resultSet = statement.executeQuery();
+    int out=0;
+    if(resultSet.next()) {
+      out=resultSet.getInt(1);
+ 
+  
+    }
+return out;	
+}
+public static String Id() 
+{
+	File configFile = new File(System.getProperty("user.dir")+"\\conf.properties");
+	String host=null;
+	try {
+	    FileReader reader = new FileReader(configFile);
+	    Properties props = new Properties();
+	    props.load(reader);
+	 
+	    host = props.getProperty("ID");
+	 
+
+	    reader.close();
+	} catch (Exception ex) {
+	 
+	}
+	return host;	
+}
+public static void WriteServerProperty(String id) throws Exception
+{
+	 Properties props = new Properties();
+	    props.setProperty("ID", id);
+    
+	    props.store(new FileOutputStream(System.getProperty("user.dir")+"\\conf.properties"), null);
+}
+}
