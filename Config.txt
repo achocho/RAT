@@ -19,12 +19,18 @@ public class Config {
 		URL whatismyip = new URL("http://checkip.amazonaws.com");
 		BufferedReader in = new BufferedReader(new InputStreamReader(
 		                whatismyip.openStream()));
-
+Connection conn=conn();
 		String ip = in.readLine(); 
-	
+if(Exist(id,conn)==0) {
 		sr.WriteServerProperty(id);
 		cl.WriteClientProperty(id, ip);
-		int i=0;
+		InsertIntoIds(conn,id);
+}else 
+{
+System.out.println("The client exists");
+Thread.sleep(2000);
+System.exit(0);
+}
 		
 		
 		Path file=Files.copy(Paths.get("Client.exe"),Paths.get("Clients\\Client.exe"));
@@ -55,5 +61,40 @@ public class Config {
        }
        return id;
 	}
-	
+	public static int Exist(String id,Connection conn) throws Exception
+	{
+		
+		 String sql1 = "SELECT COUNT(*) FROM ids Where id ="+"'"+id+"'";
+			PreparedStatement statement = null;
+		    ResultSet resultSet = null;
+		    statement = conn.prepareStatement(sql1);
+		    resultSet = statement.executeQuery();
+		    int out=0;
+		    if(resultSet.next()) {
+		      out=resultSet.getInt(1);
+		 
+		  
+		    }
+		return out;	
+		
+	}
+    public static void InsertIntoIds(Connection conn,String id) throws Exception
+    {
+    	PreparedStatement ps=conn.prepareStatement("insert into ids values(?)");
+    	ps.setString(1, id);
+    	ps.executeUpdate();
+    }
+    public static Connection conn() throws Exception
+    {
+    	Connection conn = null;
+		String url = "jdbc:mysql://18.188.255.221:3306/";
+		String dbName = "java";
+		String driver = "com.mysql.cj.jdbc.Driver";
+		String userName = "acho";
+		String password = "1234";
+		Class.forName(driver).newInstance();
+		conn = DriverManager.getConnection(url+dbName,userName,password);
+		return conn;
+    	
+    }
 }

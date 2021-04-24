@@ -37,11 +37,12 @@ public class Server  {
 				continue;
 				
 			}
-			
+			int Max=0;
 			System.out.println("---------------------------------");
 			for(int i=0;i<ips.size();i++) 
 			{
 				System.out.println(i+1+": "+ips.get(i));
+				Max=i+1;
 				
 			}
 
@@ -50,9 +51,14 @@ public class Server  {
 			Scanner sc=new Scanner(System.in);
 			int Cont=sc.nextInt();
 			String ip=null;
-		
+		if(Max>=Cont) {
 				ip=ips.get(Cont-1);
-				
+		}else 
+		{
+			System.out.println("This connection doesn't exist!");
+			continue;
+			
+		}
 			
 			
 			String option="";
