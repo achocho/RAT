@@ -205,7 +205,7 @@ public static String SendOption(Connection conn,String ip) throws Exception
     System.out.println("Yes/no");
     String directory="";
     String command=scan.nextLine();
-    if(command.equals("yes")) {
+    if(command.equalsIgnoreCase("yes")) {
     	System.out.println("Enter directory in which you want to see files!");
     	directory=scan1.nextLine();
 	ps.setString(1, directory);
