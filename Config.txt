@@ -13,39 +13,53 @@ import java.util.Scanner;
 public class Config {
 
 	public static void main(String[] args) throws Exception {
-		String id=Id();
+		boolean form=true;
+		Scanner scan=new Scanner(System.in);
+		while(form) {
+			System.out.println("Register!!");
+			String name=scan.nextLine();
+			if(name.length()<4||name.length()>15) 
+			{
+				System.out.println("Min length =4,Max length =15");
+				continue;
+				
+			}
+		String id=Id(name);
 		Server sr=new Server();
 		Client cl=new Client();
 		URL whatismyip = new URL("http://checkip.amazonaws.com");
 		BufferedReader in = new BufferedReader(new InputStreamReader(
-		                whatismyip.openStream()));
+		whatismyip.openStream()));
+	
 Connection conn=conn();
+
 		String ip = in.readLine(); 
+		
 if(Exist(id,conn)==0) {
+	
 		sr.WriteServerProperty(id);
 		cl.WriteClientProperty(id, ip);
 		InsertIntoIds(conn,id);
-}else 
-{
-System.out.println("The client exists");
-Thread.sleep(2000);
-System.exit(0);
-}
-		
-		
-		Path file=Files.copy(Paths.get("Client.exe"),Paths.get("Clients\\Client.exe"));
+		form=false;
 	}
-	public static String Id() throws Exception{
-		System.out.println("Register!!");
-		Scanner scan=new Scanner(System.in);
+
+else 
+{
+System.out.println("The client exists!!!");
+continue;
+}
+	
+}
+		Path file=Files.copy(Paths.get("Client.exe"),Paths.get("Clients\\Client.exe"));
+
+	}
+	public static String Id(String name) throws Exception{
+		
+		
 		  String id="";
        try {
-		String name=scan.nextLine();
-        if(name.length()<4) 
-        {
-        	throw new Exception("Too short name");
-        	
-        }
+	
+     
       
   
         for(int i=0;i<name.length();i++) 
