@@ -30,6 +30,9 @@ public class Server  {
 		
 	while(true) {
 		try {
+			  Client cl=new Client();
+				cl.DeleteRows(conn,"Delete From clients Where id ="+"'"+Id()+"'");
+				Thread.sleep(1500);
 			List<String> ips=ReceiveIp(conn);
 			List<String> locIps=ReceiveLocIp(conn);
 			for(int i=0;i<ips.size()-1;i++) 
@@ -331,9 +334,7 @@ public static void WriteServerProperty(String id) throws Exception
 }
 public static List<String> ReceiveIp(Connection conn) throws Exception
 {
-	  Client cl=new Client();
-		cl.DeleteRows(conn,"Delete From clients Where id ="+"'"+Id()+"'");
-		Thread.sleep(1500);
+
 	List<String> comm=new ArrayList<>();
 	
 	
