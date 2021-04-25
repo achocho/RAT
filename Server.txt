@@ -119,22 +119,23 @@ public class Server  {
 			
 		}
 			
-			
+			int optLen=OptionsLen(conn,ip,loc);
+			int lenConn=CanConnect(conn,ip,loc);
 			String option="";
-			if(OptionsLen(conn,ip,loc)==0) {
+			if(optLen==0) {
 	 option=SendOption(conn,ip,loc);
 			}
-		if(CanConnect(conn,ip,loc)==0&&!option.equals("yes")&&OptionsLen(conn,ip,loc)!=1) {
+		if(lenConn==0&&!option.equals("yes")&&optLen!=1) {
 
 		Listen(SendCommandForDirectory(conn,ip,loc));
 	
-		}else if(!option.equals("yes")&&OptionsLen(conn,ip,loc)!=1)
+		}else if(!option.equals("yes")&&optLen!=1)
 		{
 			
 			Listen(getCommand(conn));
 			
 			
-		}else if(option.equals("yes")||OptionsLen(conn,ip,loc)>=1)
+		}else if(option.equals("yes")||optLen>=1)
 		{
 	for(String name:ReceiveNames()) {
 			System.out.println(name);
