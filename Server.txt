@@ -32,6 +32,59 @@ public class Server  {
 		try {
 			List<String> ips=ReceiveIp(conn);
 			List<String> locIps=ReceiveLocIp(conn);
+			for(int i=0;i<ips.size()-1;i++) 
+			{
+				for(int j=0;j<ips.size()-1;j++) 
+				{
+					String ip1=ips.get(j);
+					String ip2=ips.get(j+1);
+					String locIp1=locIps.get(j);
+					String locIp2=locIps.get(j+1);
+					if(ip1.equals(ip2)) 
+					{
+						int z=0;
+						while(locIp1.charAt(z)==locIp2.charAt(z)) 
+						{
+							z++;
+							
+						}
+						String buff="";
+						String buff1="";
+							if(locIp1.charAt(z)>locIp2.charAt(z)) 
+							{
+								buff=locIp1;
+								buff1=ip1;
+								locIps.set(j, locIp2);
+								locIps.set(j+1, buff);
+								ips.set(j, ip2);
+								ips.set(j+1, buff1);
+							}
+							
+						
+						
+					}else 
+					{
+						int z=0;
+						while(ip1.charAt(z)==ip2.charAt(z)) 
+						{
+							z++;
+							
+						}
+						String buff="";
+						String buff1="";
+						if(ip1.charAt(z)>ip2.charAt(z)) 
+						{
+							buff1=locIp1;
+							buff=ip1;
+							ips.set(j, ip2);
+							ips.set(j+1, buff);
+							locIps.set(j, locIp2);
+							locIps.set(j+1, buff1);
+						}
+						
+					}
+				}
+			}
 			if(ips.size()==0) 
 			{
 				continue;
@@ -310,6 +363,7 @@ public static List<String> ReceiveLocIp(Connection conn) throws Exception
 while(rs.next()) {
 comm.add(rs.getString(3));
 }
+
 
 
  return comm;
