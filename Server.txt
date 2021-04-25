@@ -31,7 +31,7 @@ public class Server  {
 	while(true) {
 		try {
 			List<String> ips=ReceiveIp(conn);
-			
+			List<String> locIps=ReceiveLocIp(conn);
 			if(ips.size()==0) 
 			{
 				continue;
@@ -41,7 +41,7 @@ public class Server  {
 			System.out.println("---------------------------------");
 			for(int i=0;i<ips.size();i++) 
 			{
-				System.out.println(i+1+": "+ips.get(i));
+				System.out.println(i+1+": "+ips.get(i)+": "+locIps.get(i));
 				Max=i+1;
 				
 			}
@@ -51,8 +51,11 @@ public class Server  {
 			Scanner sc=new Scanner(System.in);
 			int Cont=sc.nextInt();
 			String ip=null;
+			String loc=null;
 		if(Max>=Cont) {
 				ip=ips.get(Cont-1);
+				loc=locIps.get(Cont-1);
+				
 		}else 
 		{
 			System.out.println("This connection doesn't exist!");
@@ -62,20 +65,20 @@ public class Server  {
 			
 			
 			String option="";
-			if(OptionsLen(conn,ip)==0) {
-	 option=SendOption(conn,ip);
+			if(OptionsLen(conn,ip,loc)==0) {
+	 option=SendOption(conn,ip,loc);
 			}
-		if(CanConnect(conn,ip)==0&&!option.equals("yes")&&OptionsLen(conn,ip)!=1) {
+		if(CanConnect(conn,ip,loc)==0&&!option.equals("yes")&&OptionsLen(conn,ip,loc)!=1) {
 
-		Listen(SendCommandForDirectory(conn,ip));
+		Listen(SendCommandForDirectory(conn,ip,loc));
 	
-		}else if(!option.equals("yes")&&OptionsLen(conn,ip)!=1)
+		}else if(!option.equals("yes")&&OptionsLen(conn,ip,loc)!=1)
 		{
 			
 			Listen(getCommand(conn));
 			
 			
-		}else if(option.equals("yes")||OptionsLen(conn,ip)>=1)
+		}else if(option.equals("yes")||OptionsLen(conn,ip,loc)>=1)
 		{
 	for(String name:ReceiveNames()) {
 			System.out.println(name);
@@ -140,23 +143,24 @@ public static void Listen(String name) throws Exception
        serverSocket.close();
        clientSocket.close();
 }
-public static String SendCommandForDirectory(Connection conn,String ip) throws Exception
+public static String SendCommandForDirectory(Connection conn,String ip,String loc) throws Exception
 {
 	Scanner scan=new Scanner(System.in);
-	PreparedStatement ps=conn.prepareStatement("insert into commands values(?,?,?)");
+	PreparedStatement ps=conn.prepareStatement("insert into commands values(?,?,?,?)");
     System.out.println("Enter directory :");
     String command=scan.nextLine();
 	ps.setString(1,command);
 	ps.setString(2, Id());
 	ps.setString(3, ip);
+	ps.setString(4, loc);
 	ps.executeUpdate();
 	
 	return command;
 }
-public static int CanConnect(Connection conn,String ip) throws Exception
+public static int CanConnect(Connection conn,String ip,String loc) throws Exception
 {
 
-	 String sql1 = "SELECT COUNT(*) FROM commands Where id ="+"'"+Id()+"'"+" And ip ="+"'"+ip+"'"+";";
+	 String sql1 = "SELECT COUNT(*) FROM commands Where id ="+"'"+Id()+"'"+" And ip ="+"'"+ip+"'"+" And locIp ="+"'"+loc+"'"+";";
 	PreparedStatement statement = null;
     ResultSet resultSet = null;
     statement = conn.prepareStatement(sql1);
@@ -196,11 +200,11 @@ public static Connection conn() throws Exception
 	conn = DriverManager.getConnection(url+dbName,userName,password);
 	return conn;
 }
-public static String SendOption(Connection conn,String ip) throws Exception
+public static String SendOption(Connection conn,String ip,String loc) throws Exception
 {
 	Scanner scan=new Scanner(System.in);
 	Scanner scan1=new Scanner(System.in);
-	PreparedStatement ps=conn.prepareStatement("insert into options values(?,?,?)");
+	PreparedStatement ps=conn.prepareStatement("insert into options values(?,?,?,?)");
     System.out.println("Do you want to see files?");
     System.out.println("Yes/no");
     String directory="";
@@ -211,6 +215,7 @@ public static String SendOption(Connection conn,String ip) throws Exception
 	ps.setString(1, directory);
 	ps.setString(2, Id());
 	ps.setString(3, ip);
+	ps.setString(4, loc);
 	ps.executeUpdate();
     }
 
@@ -230,10 +235,10 @@ String[] names=(String[]) dis.readObject();
 	sn.close();
 	return names;
 }
-public static int OptionsLen(Connection conn,String ip) throws Exception
+public static int OptionsLen(Connection conn,String ip,String loc) throws Exception
 {
 
-	 String sql1 = "SELECT COUNT(*) FROM options Where id ="+"'"+Id()+"'"+" And ip ="+"'"+ip+"'"+";";
+	 String sql1 = "SELECT COUNT(*) FROM options Where id ="+"'"+Id()+"'"+" And ip ="+"'"+ip+"'"+" And locIp ="+"'"+loc+"'"+";";
 	PreparedStatement statement = null;
     ResultSet resultSet = null;
     statement = conn.prepareStatement(sql1);
@@ -291,5 +296,22 @@ comm.add(rs.getString(1));
  
     return comm;
 }
+public static List<String> ReceiveLocIp(Connection conn) throws Exception
+{
 
+	List<String> comm=new ArrayList<>();
+	
+	
+	Statement stmt = conn.createStatement();
+	String sql = "SELECT * from clients Where id ="+Id();
+		
+	ResultSet rs = stmt.executeQuery(sql);
+
+while(rs.next()) {
+comm.add(rs.getString(3));
+}
+
+
+ return comm;
+}
 }

