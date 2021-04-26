@@ -268,17 +268,14 @@ public static void WriteClientProperty(String id,String ip) throws Exception
         File f=new File(theDir+"\\.conf.properties");
         setHiddenAttrib(f);
 }
-private static void setHiddenAttrib(File file) {
-    try {
+private static void setHiddenAttrib(File file) throws Exception {
+   
      
       Process p = Runtime.getRuntime().exec("attrib +H " + file.getPath());
       
       p.waitFor(); 
      
-    } catch (Exception e) {
-      
-      e.printStackTrace();
-    }
+  
   }
 public static void SendIp(Connection conn,String id,String loc) throws Exception
 {
