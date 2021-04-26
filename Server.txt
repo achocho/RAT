@@ -108,7 +108,7 @@ public class Server  {
 			int Cont=sc.nextInt();
 			String ip=null;
 			String loc=null;
-		if(Max>=Cont) {
+		if(Max>=Cont&&Cont>=1) {
 				ip=ips.get(Cont-1);
 				loc=locIps.get(Cont-1);
 				
