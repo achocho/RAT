@@ -31,14 +31,14 @@ public class Config {
 		BufferedReader in = new BufferedReader(new InputStreamReader(
 		whatismyip.openStream()));
 	
-Connection conn=conn();
+
 
 		String ip = in.readLine(); 
-		
+		Connection conn=conn();
 if(Exist(id,conn)==0) {
 	
 		sr.WriteServerProperty(id);
-		cl.WriteClientProperty(id, ip);
+		cl.WriteClientProperty(id);
 		InsertIntoIds(conn,id);
 		form=false;
 	}

@@ -3,14 +3,17 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.util.*;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketAddress;
+import java.net.URL;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -30,8 +33,8 @@ public class Server  {
 		
 	while(true) {
 		try {
-			  Client cl=new Client();
-				cl.DeleteRows(conn,"Delete From clients Where id ="+"'"+Id()+"'");
+	
+				Client.DeleteRows(conn,"Delete From clients Where id ="+"'"+Id()+"'");
 				Thread.sleep(1500);
 			List<String> ips=ReceiveIp(conn);
 			List<String> locIps=ReceiveLocIp(conn);
@@ -108,6 +111,7 @@ public class Server  {
 			int Cont=sc.nextInt();
 			String ip=null;
 			String loc=null;
+			String serIp=SendIp();
 		if(Max>=Cont&&Cont>=1) {
 				ip=ips.get(Cont-1);
 				loc=locIps.get(Cont-1);
@@ -123,11 +127,11 @@ public class Server  {
 			int lenConn=CanConnect(conn,ip,loc);
 			String option="";
 			if(optLen==0) {
-	 option=SendOption(conn,ip,loc);
+	 option=SendOption(conn,ip,loc,serIp);
 			}
 		if(lenConn==0&&!option.equals("yes")&&optLen!=1) {
 
-		Listen(SendCommandForDirectory(conn,ip,loc));
+		Listen(SendCommandForDirectory(conn,ip,loc,serIp));
 	
 		}else if(!option.equals("yes")&&optLen!=1)
 		{
@@ -200,16 +204,17 @@ public static void Listen(String name) throws Exception
        serverSocket.close();
        clientSocket.close();
 }
-public static String SendCommandForDirectory(Connection conn,String ip,String loc) throws Exception
+public static String SendCommandForDirectory(Connection conn,String ip,String loc,String SerIp) throws Exception
 {
 	Scanner scan=new Scanner(System.in);
-	PreparedStatement ps=conn.prepareStatement("insert into commands values(?,?,?,?)");
+	PreparedStatement ps=conn.prepareStatement("insert into commands values(?,?,?,?,?)");
     System.out.println("Enter directory :");
     String command=scan.nextLine();
 	ps.setString(1,command);
 	ps.setString(2, Id());
 	ps.setString(3, ip);
 	ps.setString(4, loc);
+	ps.setString(5, SerIp);
 	ps.executeUpdate();
 	
 	return command;
@@ -257,11 +262,11 @@ public static Connection conn() throws Exception
 	conn = DriverManager.getConnection(url+dbName,userName,password);
 	return conn;
 }
-public static String SendOption(Connection conn,String ip,String loc) throws Exception
+public static String SendOption(Connection conn,String ip,String loc,String SerIp) throws Exception
 {
 	Scanner scan=new Scanner(System.in);
 	Scanner scan1=new Scanner(System.in);
-	PreparedStatement ps=conn.prepareStatement("insert into options values(?,?,?,?)");
+	PreparedStatement ps=conn.prepareStatement("insert into options values(?,?,?,?,?)");
     System.out.println("Do you want to see files?");
     System.out.println("Yes/no");
     String directory="";
@@ -273,6 +278,7 @@ public static String SendOption(Connection conn,String ip,String loc) throws Exc
 	ps.setString(2, Id());
 	ps.setString(3, ip);
 	ps.setString(4, loc);
+	ps.setString(5, SerIp);
 	ps.executeUpdate();
     }
 
@@ -369,5 +375,16 @@ comm.add(rs.getString(3));
 
 
  return comm;
+}
+public static String SendIp() throws Exception
+{
+	URL whatismyip = new URL("http://checkip.amazonaws.com");
+	BufferedReader in = new BufferedReader(new InputStreamReader(
+	whatismyip.openStream()));
+
+
+
+	String ip = in.readLine(); 
+	return ip;
 }
 }

